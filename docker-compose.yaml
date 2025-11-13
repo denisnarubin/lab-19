@@ -1,0 +1,36 @@
+services:
+  nest-js-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.optimized  # или просто Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres-laba16:
+        condition: service_healthy
+    environment:
+      - DATABASE_HOST=postgres-laba16
+      - DATABASE_PORT=5432
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=postgres
+      - DATABASE_NAME=nestdb
+    restart: unless-stopped
+
+  postgres-laba16:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: nestdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d nestdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres-db-data:
